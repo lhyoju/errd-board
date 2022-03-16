@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.errd.dao.BoardDAO">
+	<!-- 게시글 작성하기 -->
+	<insert id="insertBoard">
+		insert into errd_board (board_no, board_name, board_cont, board_pwd,
+		board_date) values (errd_board_seq.nextval, #{board_name},
+		#{board_cont}, #{board_pwd}, sysdate)
+	</insert>
+
+	<!-- 검색 전후 자료실 목록 -->
+	<select id="getBoardList" resultType="com.example.errd.vo.BoardVO">
+		select * from (
+		select rowNum rNum, board_no, board_name, board_cont, board_hit, board_up, board_date from
+		(select * from errd_board
+		<where>
+			<if test="find_field == ''"></if><!-- 검색전 -->
+			<if test="find_field == 'board_name'">
+				board_name like #{find_name} <!-- 검색 필드가 작성자인 경우 -->
+			</if>
+			<if test="find_field == 'board_cont'">
+				board_cont like #{find_name} <!-- 검색필드가 내용인 경우 -->
+			</if>
+		</where>
+		order by board_no desc))
+		where rNum &gt;= #{startrow} and rNum &lt;= #{endrow} <!-- &gt;는 ~보다 크거나 같다 (>=), 
+			&lt;는 ~보다 작거나 같다 (<=) -->
+	</select>
+
+	<select id="checkPwd" resultType="String">
+		select board_pwd from
+		errd_board where board_no=#{board_no}
+	</select>
+
+	<delete id="delBoard">
+		delete errd_board where board_no=#{board_no}
+	</delete>
+
+	<select id="getBoardLike" resultType="int">
+		select board_up from
+		errd_board where board_no=#{board_no}
+	</select>
+
+	<update id="upBoardLike">
+		update errd_board set board_up=board_up+1 where
+		board_no=#{board_no}
+	</update>
+
+	<update id="delBoardLike">
+		update errd_board set board_up=board_up-1 where
+		board_no=#{board_no}
+	</update>
+
+	<!-- 검색 전후 레코드 개수 -->
+	<select id="getTotalCount" resultType="int">
+		select count(board_no) from errd_board
+		<where>
+			<if test="find_field == ''"></if><!-- 검색전 -->
+			<if test="find_field == 'board_name'">
+				board_name like #{find_name} <!-- 검색 필드가 작성자인 경우 -->
+			</if>
+			<if test="find_field == 'board_cont'">
+				board_cont like #{find_name} <!-- 검색필드가 내용인 경우 -->
+			</if>
+		</where>
+	</select>
+
+
+
+</mapper>
